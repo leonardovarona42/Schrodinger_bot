@@ -1,7 +1,8 @@
 import { Bot, Context } from "grammy"
 import { threatIntel } from "@schrodinger/threat-intel"
 import { prisma } from "@schrodinger/database"
-import { extractUrls, extractIPs, isSSRFProtected } from "@schrodinger/shared"
+import { extractUrls, extractIPs, isSSRFProtected, PolicySchema } from "@schrodinger/shared"
+import { z } from "zod"
 
 const MODERATOR_ROLES = ["SUPER_ADMIN", "OWNER", "ADMIN", "MODERATOR"]
 
@@ -317,7 +318,8 @@ export function registerThreatIntelCommands(bot: Bot) {
     }
 
     const boolValues: Record<string, boolean> = { on: true, off: false, true: true, false: false, si: true, no: false }
-    const parsedValue = value.toLowerCase() in boolValues ? boolValues[value.toLowerCase()] : parseInt(value, 10)
+    const isBool = value.toLowerCase() in boolValues
+    const parsedValue = isBool ? boolValues[value.toLowerCase()] : parseInt(value, 10)
 
     const updateData: any = {}
 
@@ -339,17 +341,45 @@ export function registerThreatIntelCommands(bot: Bot) {
         updateData.antiSpam = parsedValue
         break
       case "warn_limit":
-      case "warnlimit":
-        updateData.warnLimit = parsedValue
+      case "warnlimit": {
+        const result = PolicySchema.shape.warnLimit.safeParse(parsedValue)
+        if (!result.success) {
+          await ctx.reply("warn_limit debe ser un número entero entre 1 y 20.")
+          return
+        }
+        updateData.warnLimit = result.data
         break
+      }
       case "mute_duration":
-      case "muteduration":
-        updateData.muteDuration = parsedValue
+      case "muteduration": {
+        const result = PolicySchema.shape.muteDuration.safeParse(parsedValue)
+        if (!result.success) {
+          await ctx.reply("mute_duration debe ser un número entero entre 1 y 43200 minutos.")
+          return
+        }
+        updateData.muteDuration = result.data
         break
+      }
       case "flood_limit":
-      case "floodlimit":
-        updateData.floodLimit = parsedValue
+      case "floodlimit": {
+        const result = PolicySchema.shape.floodLimit.safeParse(parsedValue)
+        if (!result.success) {
+          await ctx.reply("flood_limit debe ser un número entero entre 1 y 50.")
+          return
+        }
+        updateData.floodLimit = result.data
         break
+      }
+      case "flood_interval":
+      case "floodinterval": {
+        const result = PolicySchema.shape.floodInterval.safeParse(parsedValue)
+        if (!result.success) {
+          await ctx.reply("flood_interval debe ser un número entero entre 1000 y 60000 ms.")
+          return
+        }
+        updateData.floodInterval = result.data
+        break
+      }
       case "auto_ban":
       case "autoban":
         updateData.autoBanOnWarn = parsedValue

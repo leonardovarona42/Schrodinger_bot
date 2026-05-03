@@ -1,5 +1,5 @@
 import { prisma } from "@schrodinger/database"
-import { ScanResult } from "@schrodinger/shared"
+import { ScanResult, isPrivateIP } from "@schrodinger/shared"
 
 export class AbuseIPDBService {
   private apiKey: string
@@ -17,6 +17,15 @@ export class AbuseIPDBService {
 
   async checkIp(ip: string): Promise<ScanResult | null> {
     if (!(await this.isEnabled())) return null
+
+    if (isPrivateIP(ip)) {
+      return {
+        isMalicious: false,
+        score: 0,
+        source: "abuseipdb",
+        details: "Private IP address not allowed",
+      }
+    }
 
     if (!this.isValidIp(ip)) {
       return {

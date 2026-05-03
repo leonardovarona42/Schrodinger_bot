@@ -9,6 +9,11 @@ interface FloodTracker {
 
 const floodMap = new Map<string, FloodTracker>()
 
+// TODO(M-04): Race Condition - Flood tracking uses in-memory Map which is not persistent
+// and not suitable for production multi-instance deployments. Consider using Redis
+// or a similar persistent store for flood tracking in production.
+// Example: const redis = new Redis(process.env.REDIS_URL)
+
 export function registerFloodMiddleware(bot: Bot) {
   bot.use(async (ctx, next) => {
     if (!ctx.chat || ctx.chat.type === "private") {

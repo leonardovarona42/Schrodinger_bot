@@ -1,5 +1,5 @@
 import { prisma } from "@schrodinger/database"
-import { VirusTotalUrlReport, ScanResult } from "@schrodinger/shared"
+import { VirusTotalUrlReport, ScanResult, isSSRFProtected } from "@schrodinger/shared"
 
 export class VirusTotalService {
   private apiKey: string
@@ -17,6 +17,15 @@ export class VirusTotalService {
 
   async scanUrl(url: string): Promise<ScanResult | null> {
     if (!(await this.isEnabled())) return null
+
+    if (!isSSRFProtected(url)) {
+      return {
+        isMalicious: false,
+        score: 0,
+        source: "virustotal",
+        details: "URL not allowed: private or local address",
+      }
+    }
 
     try {
       const encodedUrl = Buffer.from(url).toString("base64url")
