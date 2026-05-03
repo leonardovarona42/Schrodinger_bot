@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  MODERATOR
+  VIEWER
+}
+
+enum ActionType {
+  WARN
+  MUTE
+  BAN
+  KICK
+  UNBAN
+  UNMUTE
+  DELETE_MESSAGE
+  BLACKLIST
+  WHITELIST
+  FLOOD_DETECTED
+  LINK_BLOCKED
+  IP_BLOCKED
+  SYSTEM
+}
+
+model User {
+  id          String   @id @default(cuid())
+  telegramId  BigInt   @unique
+  username    String?
+  name        String?
+  role        Role     @default(MODERATOR)
+  groups      Group[]
+  warns       Warn[]
+  actionsDone Log[]    @relation("ActorActions")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([telegramId])
+}
+
+model Group {
+  id             String   @id @default(cuid())
+  telegramId     BigInt   @unique
+  name           String?
+  members        Int      @default(0)
+  settingsJson   Json?
+  admins         User[]
+  policy         Policy?
+  warns          Warn[]
+  logs           Log[]
+  blacklistedUrls BlacklistedUrl[]
+  whitelistedUrls WhitelistedUrl[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([telegramId])
+}
+
+model Warn {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  reason    String?
+  createdById String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
+  creator User?   @relation("WarnCreator", fields: [createdById], references: [id])
+
+  @@index([userId, groupId])
+}
+
+model Policy {
+  id              String   @id @default(cuid())
+  groupId         String   @unique
+  antiFlood       Boolean  @default(true)
+  antiLink        Boolean  @default(true)
+  antiForward     Boolean  @default(false)
+  antiSpam        Boolean  @default(true)
+  captchaOnJoin   Boolean  @default(false)
+  warnLimit       Int      @default(3)
+  muteDuration    Int      @default(15)
+  floodLimit      Int      @default(5)
+  floodInterval   Int      @default(3000)
+  autoBanOnWarn   Boolean  @default(true)
+  spamSensitivity String   @default("medium")
+  groupRules      String?
+  vtEnabled       Boolean  @default(false)
+  abuseEnabled    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Integration {
+  id              String   @id @default(cuid())
+  virustotalApiKey String?
+  abuseipdbApiKey  String?
+  vtEnabled        Boolean  @default(false)
+  abuseEnabled     Boolean  @default(false)
+  vtQuotaUsed      Int      @default(0)
+  abuseQuotaUsed   Int      @default(0)
+  vtQuotaLimit     Int      @default(500)
+  abuseQuotaLimit  Int      @default(1000)
+  lastVtQuery      DateTime?
+  lastAbuseQuery   DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Log {
+  id          String     @id @default(cuid())
+  groupId     String
+  actionType  ActionType
+  actorId     String?
+  targetId    String?
+  details     String?
+  metadata    Json?
+  createdAt   DateTime   @default(now())
+
+  group  Group @relation(fields: [groupId], references: [id])
+  actor  User? @relation("ActorActions", fields: [actorId], references: [id])
+
+  @@index([groupId, createdAt])
+  @@index([actionType])
+}
+
+model BlacklistedUrl {
+  id        String   @id @default(cuid())
+  groupId   String
+  url       String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, url])
+}
+
+model WhitelistedUrl {
+  id        String   @id @default(cuid())
+  groupId   String
+  url       String
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, url])
+}
+
+model CacheEntry {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  expiresAt DateTime @db.Timestamptz
+
+  @@index([expiresAt])
+}
