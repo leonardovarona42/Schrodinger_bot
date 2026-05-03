@@ -1,6 +1,7 @@
 import { prisma } from "@schrodinger/database"
 import { Card, Badge } from "@/components/ui"
 import { ScrollText } from "lucide-react"
+import ExportButtons from "@/components/export-buttons"
 
 const actionTypeColors: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
   WARN: "warning",
@@ -25,14 +26,24 @@ export default async function LogsPage() {
     include: { group: true },
   })
 
+  const exportData = logs.map((log) => ({
+    actionType: log.actionType,
+    group: log.group.name || `Grupo ${log.group.telegramId}`,
+    details: log.details || "",
+    date: new Date(log.createdAt).toLocaleString("es-ES"),
+  }))
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Logs</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Logs</h1>
           <p className="text-slate-500 mt-1">Historial completo de acciones de moderacion</p>
         </div>
-        <span className="text-sm text-slate-500">{logs.length} eventos</span>
+        <div className="flex items-center gap-4">
+          <ExportButtons data={exportData} filename="logs" />
+          <span className="text-sm text-slate-500">{logs.length} eventos</span>
+        </div>
       </div>
 
       {logs.length === 0 ? (
