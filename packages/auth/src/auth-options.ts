@@ -1,5 +1,6 @@
 import { NextAuthOptions, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from "bcryptjs"
 
 declare module "next-auth" {
   interface Session {
@@ -23,18 +24,27 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const validUser = process.env.ADMIN_USERNAME || "admin"
-        const validPass = process.env.ADMIN_PASSWORD || "admin123"
+        const validUser = process.env.ADMIN_USERNAME
+        const validPassHash = process.env.ADMIN_PASSWORD_HASH
 
-        if (credentials.username === validUser && credentials.password === validPass) {
-          return {
-            id: "1",
-            name: validUser,
-            role: "SUPER_ADMIN",
-          }
+        if (!validUser || !validPassHash) {
+          throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD_HASH must be configured")
         }
 
-        return null
+        if (credentials.username !== validUser) {
+          return null
+        }
+
+        const isValid = await bcrypt.compare(credentials.password, validPassHash)
+        if (!isValid) {
+          return null
+        }
+
+        return {
+          id: "1",
+          name: validUser,
+          role: "SUPER_ADMIN",
+        }
       },
     }),
   ],
@@ -63,6 +73,17 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "strict" as const,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+      },
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

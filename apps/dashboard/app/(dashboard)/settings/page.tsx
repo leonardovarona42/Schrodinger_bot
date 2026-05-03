@@ -18,7 +18,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="password"
-                defaultValue={process.env.TELEGRAM_BOT_TOKEN || ""}
+                defaultValue={process.env.TELEGRAM_BOT_TOKEN ? "•••••••••configurado•••••••••" : ""}
                 disabled
                 className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-500"
                 placeholder="No configurado"
@@ -30,7 +30,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="password"
-                defaultValue={process.env.TELEGRAM_WEBHOOK_SECRET || ""}
+                defaultValue={process.env.TELEGRAM_WEBHOOK_SECRET ? "•••••••••configurado•••••••••" : ""}
                 disabled
                 className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-500"
                 placeholder="No configurado"
@@ -76,7 +76,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="password"
-                defaultValue={process.env.VIRUSTOTAL_API_KEY || ""}
+                defaultValue={process.env.VIRUSTOTAL_API_KEY ? "•••••••••configurado•••••••••" : ""}
                 disabled
                 className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-500"
                 placeholder="No configurado"
@@ -88,7 +88,7 @@ export default function SettingsPage() {
               </label>
               <input
                 type="password"
-                defaultValue={process.env.ABUSEIPDB_API_KEY || ""}
+                defaultValue={process.env.ABUSEIPDB_API_KEY ? "•••••••••configurado•••••••••" : ""}
                 disabled
                 className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-500"
                 placeholder="No configurado"
@@ -169,7 +169,7 @@ export default function SettingsPage() {
           <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
             <AlertTriangle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
             <p className="text-sm text-blue-700">
-              <strong>Nota:</strong> Estos valores se configuran en el archivo <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs">.env</code>. Los cambios requieren reiniciar el bot para aplicar.
+              <strong>Nota:</strong> Las credenciales se configuran en el archivo <code className="bg-blue-100 px-1.5 py-0.5 rounded text-xs">.env</code>. Los cambios requieren reiniciar la aplicacion para aplicar.
             </p>
           </div>
         </Card>
@@ -182,16 +182,16 @@ export default function SettingsPage() {
                 <p className="text-xs text-slate-500">Usuario administrador</p>
               </div>
               <code className="px-3 py-1 bg-white border border-slate-200 rounded-md text-sm font-mono text-slate-700">
-                {process.env.ADMIN_USERNAME || "admin"}
+                {process.env.ADMIN_USERNAME ? "•••••••••configurado•••••••••" : "no-configurado"}
               </code>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-slate-900">ADMIN_PASSWORD</p>
-                <p className="text-xs text-slate-500">Contrasena del dashboard</p>
+                <p className="text-xs text-slate-500">Contrasena del dashboard (bcrypt hash)</p>
               </div>
               <code className="px-3 py-1 bg-white border border-slate-200 rounded-md text-sm font-mono text-slate-700">
-                {process.env.ADMIN_PASSWORD || "no-configurada"}
+                {process.env.ADMIN_PASSWORD_HASH ? "•••••••••configurado•••••••••" : "no-configurado"}
               </code>
             </div>
           </div>

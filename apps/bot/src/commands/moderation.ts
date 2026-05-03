@@ -3,6 +3,15 @@ import { prisma } from "@schrodinger/database"
 import { MESSAGES, getOrCreateUser } from "../database/client.js"
 import { extractUrls } from "@schrodinger/shared"
 
+const MODERATOR_ROLES = ["SUPER_ADMIN", "OWNER", "ADMIN", "MODERATOR"]
+
+async function hasModPermission(ctx: Context): Promise<boolean> {
+  if (!ctx.from) return false
+  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(ctx.from.id) } })
+  if (!user) return false
+  return MODERATOR_ROLES.includes(user.role)
+}
+
 function parseUserTarget(text: string): { userId: number | null; reason: string } {
   const reply = text.split("\n")[0].trim()
   const replyMatch = text.match(/^\/\w+\s+@?(\w+)/)
@@ -17,6 +26,12 @@ function parseUserTarget(text: string): { userId: number | null; reason: string 
 export function registerModerationCommands(bot: Bot) {
   bot.command("warn", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
+
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
 
     const reply = ctx.message?.reply_to_message
     const replyUser = reply?.from
@@ -78,6 +93,12 @@ export function registerModerationCommands(bot: Bot) {
   bot.command("mute", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
 
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
+
     const reply = ctx.message?.reply_to_message
     const replyUser = reply?.from
 
@@ -127,6 +148,12 @@ export function registerModerationCommands(bot: Bot) {
   bot.command("ban", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
 
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
+
     const reply = ctx.message?.reply_to_message
     const replyUser = reply?.from
 
@@ -161,6 +188,12 @@ export function registerModerationCommands(bot: Bot) {
   bot.command("kick", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
 
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
+
     const reply = ctx.message?.reply_to_message
     const replyUser = reply?.from
 
@@ -193,6 +226,12 @@ export function registerModerationCommands(bot: Bot) {
   bot.command("unban", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
 
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
+
     const reply = ctx.message?.reply_to_message
     const replyUser = reply?.from
 
@@ -223,6 +262,12 @@ export function registerModerationCommands(bot: Bot) {
 
   bot.command("unmute", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
+
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
 
     const reply = ctx.message?.reply_to_message
     const replyUser = reply?.from

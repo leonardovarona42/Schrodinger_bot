@@ -1,7 +1,16 @@
-import { Bot } from "grammy"
+import { Bot, Context } from "grammy"
 import { threatIntel } from "@schrodinger/threat-intel"
 import { prisma } from "@schrodinger/database"
-import { extractUrls, extractIPs } from "@schrodinger/shared"
+import { extractUrls, extractIPs, isSSRFProtected } from "@schrodinger/shared"
+
+const MODERATOR_ROLES = ["SUPER_ADMIN", "OWNER", "ADMIN", "MODERATOR"]
+
+async function hasModPermission(ctx: Context): Promise<boolean> {
+  if (!ctx.from) return false
+  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(ctx.from.id) } })
+  if (!user) return false
+  return MODERATOR_ROLES.includes(user.role)
+}
 
 export function registerThreatIntelCommands(bot: Bot) {
   bot.command("scanlink", async (ctx) => {
@@ -24,6 +33,11 @@ export function registerThreatIntelCommands(bot: Bot) {
 
     if (!urlToScan.startsWith("http")) {
       urlToScan = `https://${urlToScan}`
+    }
+
+    if (!isSSRFProtected(urlToScan)) {
+      await ctx.reply("Enlace no permitido. No se pueden escanear direcciones privadas o locales.")
+      return
     }
 
     const msg = await ctx.reply("🔬 Escaneando enlace con VirusTotal...")
@@ -69,8 +83,13 @@ export function registerThreatIntelCommands(bot: Bot) {
       }
     }
 
-    if (!ipToScan) {
-      await ctx.reply("Uso: /scanip <ip> o responde a un mensaje con una dirección IP.")
+     if (!ipToScan) {
+       await ctx.reply("Uso: /scanip <ip> o responde a un mensaje con una dirección IP.")
+       return
+     }
+
+    if (isPrivateIP(ipToScan)) {
+      await ctx.reply("Dirección IP privada no permitida para escaneo.")
       return
     }
 
@@ -268,6 +287,12 @@ export function registerThreatIntelCommands(bot: Bot) {
   bot.command("policy_set", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
 
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
+
     const match = ctx.match?.trim()
     if (!match) {
       await ctx.reply("Uso: /policy_set <clave> <valor>\nEjemplos:\n/policy_set anti_flood on\n/policy_set warn_limit 5")
@@ -351,6 +376,12 @@ export function registerThreatIntelCommands(bot: Bot) {
   })
 
   bot.command("integrations", async (ctx) => {
+    const hasPermission = await hasModPermission(ctx)
+    if (!hasPermission) {
+      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      return
+    }
+
     const integration = await prisma.integration.findFirst()
 
     if (!integration) {
