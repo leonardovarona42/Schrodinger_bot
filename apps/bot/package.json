@@ -13,7 +13,6 @@
     "@schrodinger/shared": "*",
     "@schrodinger/threat-intel": "*",
     "grammy": "^1.32.0",
-    "@grammyjs/auto-pagination": "^1.0.1",
     "ioredis": "^5.4.0",
     "hono": "^4.6.0",
     "@hono/node-server": "^1.13.0",

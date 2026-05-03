@@ -61,6 +61,10 @@ prisma/migrations/
 # Optional REPL history
 .node_repl_history
 
+# API Keys (raw files)
+api_keysToConfig.txt
+*.key
+
 # Misc
 *.pem
 *.bak

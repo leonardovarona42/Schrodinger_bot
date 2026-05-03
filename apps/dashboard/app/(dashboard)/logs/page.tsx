@@ -2,7 +2,7 @@ import { prisma } from "@schrodinger/database"
 import { Card, Badge } from "@/components/ui"
 import { ScrollText } from "lucide-react"
 
-const actionTypeColors: Record<string, "default" | "success" | "warning" | "danger"> = {
+const actionTypeColors: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
   WARN: "warning",
   MUTE: "warning",
   BAN: "danger",
@@ -26,50 +26,60 @@ export default async function LogsPage() {
   })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Logs</h1>
-        <p className="text-slate-500 mt-1">Historial de acciones de moderacion</p>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Logs</h1>
+          <p className="text-slate-500 mt-1">Historial completo de acciones de moderacion</p>
+        </div>
+        <span className="text-sm text-slate-500">{logs.length} eventos</span>
       </div>
 
       {logs.length === 0 ? (
         <Card>
-          <div className="text-center py-12">
-            <ScrollText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-900">No hay logs registrados</h3>
-            <p className="text-slate-500 mt-2">
-              Los logs apareceran cuando el bot realice acciones de moderacion
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <ScrollText className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900">No hay logs registrados</h3>
+            <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+              Los logs apareceran cuando el bot realice acciones de moderacion en tus grupos
             </p>
           </div>
         </Card>
       ) : (
-        <Card>
+        <Card className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Accion</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Grupo</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Detalles</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Fecha</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Accion</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Grupo</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Detalles</th>
+                  <th className="text-left py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {logs.map((log) => (
-                  <tr key={log.id} className="border-b border-slate-100 last:border-0">
-                    <td className="py-3 px-4">
+                  <tr key={log.id} className="hover:bg-slate-50 transition">
+                    <td className="py-3 px-6">
                       <Badge variant={actionTypeColors[log.actionType] || "default"}>
                         {log.actionType}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-700">
-                      {log.group.name || log.group.telegramId}
+                    <td className="py-3 px-6 text-sm text-slate-700">
+                      {log.group.name || `Grupo ${log.group.telegramId}`}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500 max-w-xs truncate">
+                    <td className="py-3 px-6 text-sm text-slate-500 max-w-xs truncate">
                       {log.details || "-"}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-500 whitespace-nowrap">
-                      {new Date(log.createdAt).toLocaleString("es-ES")}
+                    <td className="py-3 px-6 text-sm text-slate-500 whitespace-nowrap">
+                      {new Date(log.createdAt).toLocaleString("es-ES", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </td>
                   </tr>
                 ))}

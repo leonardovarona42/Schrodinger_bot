@@ -6,5 +6,5 @@ export const threatIntel = {
   abuseipdb: new AbuseIPDBService(),
 }
 
-export { VirusTotalService } from "./virustotal.js"
-export { AbuseIPDBService } from "./abuseipdb.js"
+export { VirusTotalService } from "./virustotal"
+export { AbuseIPDBService } from "./abuseipdb"

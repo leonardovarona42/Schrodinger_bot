@@ -1,5 +1,5 @@
 import { prisma } from "@schrodinger/database"
-import { Card, Badge } from "@/components/ui"
+import { Card } from "@/components/ui"
 import { Shield, Check, X } from "lucide-react"
 
 export default async function PoliciesPage() {
@@ -9,59 +9,55 @@ export default async function PoliciesPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Politicas de Seguridad</h1>
-        <p className="text-slate-500 mt-1">Configuracion de reglas de moderacion</p>
+        <p className="text-slate-500 mt-1">Configuracion de reglas de moderacion por grupo</p>
       </div>
 
       {policies.length === 0 ? (
         <Card>
-          <div className="text-center py-12">
-            <Shield className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-900">No hay politicas configuradas</h3>
-            <p className="text-slate-500 mt-2">
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900">No hay politicas configuradas</h3>
+            <p className="text-slate-500 mt-2 max-w-sm mx-auto">
               Las politicas se crean automaticamente al agregar el bot a un grupo
             </p>
           </div>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {policies.map((policy) => (
-            <Card key={policy.id}>
-              <div className="mb-4">
-                <h3 className="font-semibold text-slate-900">
-                  {policy.group.name || `Grupo ${policy.group.telegramId}`}
-                </h3>
+            <Card key={policy.id} title={policy.group.name || `Grupo ${policy.group.telegramId}`}>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <Toggle label="Anti-Flood" enabled={policy.antiFlood} />
+                <Toggle label="Anti-Link" enabled={policy.antiLink} />
+                <Toggle label="Anti-Forward" enabled={policy.antiForward} />
+                <Toggle label="Anti-Spam" enabled={policy.antiSpam} />
+                <Toggle label="Captcha Join" enabled={policy.captchaOnJoin} />
+                <Toggle label="Auto-Ban" enabled={policy.autoBanOnWarn} />
+                <Toggle label="VirusTotal" enabled={policy.vtEnabled} />
+                <Toggle label="AbuseIPDB" enabled={policy.abuseEnabled} />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <PolicyToggle label="Anti-Flood" enabled={policy.antiFlood} />
-                <PolicyToggle label="Anti-Link" enabled={policy.antiLink} />
-                <PolicyToggle label="Anti-Forward" enabled={policy.antiForward} />
-                <PolicyToggle label="Anti-Spam" enabled={policy.antiSpam} />
-                <PolicyToggle label="Captcha Join" enabled={policy.captchaOnJoin} />
-                <PolicyToggle label="Auto-Ban" enabled={policy.autoBanOnWarn} />
-                <PolicyToggle label="VirusTotal" enabled={policy.vtEnabled} />
-                <PolicyToggle label="AbuseIPDB" enabled={policy.abuseEnabled} />
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100">
                 <div>
-                  <span className="text-slate-500">Limite Warns:</span>
-                  <span className="ml-2 font-medium">{policy.warnLimit}</span>
+                  <p className="text-xs text-slate-500 mb-1">Limite Warns</p>
+                  <p className="text-lg font-semibold text-slate-900">{policy.warnLimit}</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Duracion Mute:</span>
-                  <span className="ml-2 font-medium">{policy.muteDuration} min</span>
+                  <p className="text-xs text-slate-500 mb-1">Duracion Mute</p>
+                  <p className="text-lg font-semibold text-slate-900">{policy.muteDuration} min</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Flood Limit:</span>
-                  <span className="ml-2 font-medium">{policy.floodLimit} msgs</span>
+                  <p className="text-xs text-slate-500 mb-1">Flood Limit</p>
+                  <p className="text-lg font-semibold text-slate-900">{policy.floodLimit} msgs</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Sensibilidad:</span>
-                  <span className="ml-2 font-medium">{policy.spamSensitivity}</span>
+                  <p className="text-xs text-slate-500 mb-1">Sensibilidad</p>
+                  <p className="text-lg font-semibold text-slate-900 capitalize">{policy.spamSensitivity}</p>
                 </div>
               </div>
             </Card>
@@ -72,15 +68,19 @@ export default async function PoliciesPage() {
   )
 }
 
-function PolicyToggle({ label, enabled }: { label: string; enabled: boolean }) {
+function Toggle({ label, enabled }: { label: string; enabled: boolean }) {
   return (
     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
       <span className="text-sm font-medium text-slate-700">{label}</span>
-      {enabled ? (
-        <Check className="w-4 h-4 text-green-500" />
-      ) : (
-        <X className="w-4 h-4 text-slate-400" />
-      )}
+      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+        enabled ? "bg-emerald-100" : "bg-slate-200"
+      }`}>
+        {enabled ? (
+          <Check className="w-3 h-3 text-emerald-600" />
+        ) : (
+          <X className="w-3 h-3 text-slate-400" />
+        )}
+      </div>
     </div>
   )
 }

@@ -1,2 +1,2 @@
-export * from "./user.js"
-export * from "./auth-options.js"
+export * from "./user"
+export * from "./auth-options"

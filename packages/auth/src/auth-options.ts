@@ -1,52 +1,57 @@
-import { NextAuthOptions } from "next-auth"
+import { NextAuthOptions, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { prisma } from "@schrodinger/database"
-import bcrypt from "bcryptjs"
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string
+      role: string
+    } & DefaultSession["user"]
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.username || !credentials?.password) {
           return null
         }
 
-        const admin = await prisma.user.findFirst({
-          where: {
-            username: credentials.email,
-          },
-        })
+        const validUser = process.env.ADMIN_USERNAME || "admin"
+        const validPass = process.env.ADMIN_PASSWORD || "admin123"
 
-        if (!admin) return null
-
-        const isValid = bcrypt.compareSync(credentials.password, process.env.ADMIN_PASSWORD_HASH || "")
-
-        if (!isValid) return null
-
-        return {
-          id: admin.id,
-          name: admin.name || admin.username || null,
-          email: admin.username || null,
-          role: admin.role,
+        if (credentials.username === validUser && credentials.password === validPass) {
+          return {
+            id: "1",
+            name: validUser,
+            role: "SUPER_ADMIN",
+          }
         }
+
+        return null
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id
         token.role = (user as any).role
+        token.name = user.name
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        ;(session.user as any).role = token.role
+        session.user.id = token.id as string
+        ;(session.user as any).role = token.role as string
+        session.user.name = token.name as string
       }
       return session
     },

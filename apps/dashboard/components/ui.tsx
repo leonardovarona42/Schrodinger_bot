@@ -1,5 +1,10 @@
-import { cn } from "@/lib/utils"
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 import { ReactNode } from "react"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 interface CardProps {
   title?: string
@@ -16,7 +21,7 @@ export function Card({ title, description, children, className, action }: CardPr
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div>
             {title && <h3 className="font-semibold text-slate-900">{title}</h3>}
-            {description && <p className="text-sm text-slate-500 mt-1">{description}</p>}
+            {description && <p className="text-sm text-slate-500 mt-0.5">{description}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>
@@ -39,15 +44,15 @@ export function StatCard({ title, value, icon, trend, className }: StatCardProps
     <div className={cn("bg-white rounded-xl border border-slate-200 shadow-sm p-6", className)}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-500">{title}</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
+          <p className="text-sm font-medium text-slate-500">{title}</p>
+          <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
           {trend && (
-            <p className={`text-xs mt-2 ${trend.positive ? "text-green-600" : "text-red-600"}`}>
-              {trend.positive ? "↑" : "↓"} {trend.value}% vs ayer
+            <p className={`text-xs font-medium mt-2 ${trend.positive ? "text-emerald-600" : "text-red-600"}`}>
+              {trend.positive ? "+" : ""}{trend.value}% vs ayer
             </p>
           )}
         </div>
-        <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+        <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
           {icon}
         </div>
       </div>
@@ -57,15 +62,16 @@ export function StatCard({ title, value, icon, trend, className }: StatCardProps
 
 interface BadgeProps {
   children: ReactNode
-  variant?: "default" | "success" | "warning" | "danger"
+  variant?: "default" | "success" | "warning" | "danger" | "info"
 }
 
 export function Badge({ children, variant = "default" }: BadgeProps) {
   const variants = {
     default: "bg-slate-100 text-slate-700",
-    success: "bg-green-100 text-green-700",
-    warning: "bg-yellow-100 text-yellow-700",
+    success: "bg-emerald-100 text-emerald-700",
+    warning: "bg-amber-100 text-amber-700",
     danger: "bg-red-100 text-red-700",
+    info: "bg-blue-100 text-blue-700",
   }
 
   return (
