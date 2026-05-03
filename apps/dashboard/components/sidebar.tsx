@@ -15,12 +15,12 @@ import {
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/groups", label: "Grupos", icon: Users },
-  { href: "/dashboard/policies", label: "Politicas", icon: Shield },
-  { href: "/dashboard/integrations", label: "Integraciones", icon: Plug },
-  { href: "/dashboard/logs", label: "Logs", icon: ScrollText },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Configuracion", icon: Settings },
+  { href: "/groups", label: "Grupos", icon: Users },
+  { href: "/policies", label: "Politicas", icon: Shield },
+  { href: "/integrations", label: "Integraciones", icon: Plug },
+  { href: "/logs", label: "Logs", icon: ScrollText },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/settings", label: "Configuracion", icon: Settings },
 ]
 
 export function Sidebar() {
