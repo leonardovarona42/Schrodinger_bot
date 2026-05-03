@@ -1,217 +1,155 @@
 # SchrodingerSec Platform
 
-Plataforma profesional de moderacion y ciberseguridad para comunidades de Telegram con dashboard web e inteligencia de amenazas integrada.
+Plataforma de seguridad para Telegram que combina un bot moderador inteligente con un dashboard web de monitoreo y análisis de amenazas.
 
-## Caracteristicas
+## Características
 
-- **Bot de Telegram** con moderacion automatica y proteccion anti-spam/flood
-- **Dashboard Web** administrativo con gestion multi-grupo
-- **Threat Intelligence** integrado con VirusTotal y AbuseIPDB
-- **Sistema de warns, bans, kicks, mutes** configurable
-- **Deteccion de enlaces sospechosos** en tiempo real
-- **Panel de analytics** con estadisticas detalladas
-- **Arquitectura monorepo** con Turborepo
+### Bot de Telegram
+- **Moderación automática**: Anti-flood, anti-link, anti-spam, anti-forward
+- **Gestión de usuarios**: Warns, bans, mutes, kicks con control de permisos
+- **Threat Intelligence**: Integración con VirusTotal y AbuseIPDB para verificación de URLs e IPs maliciosas
+- **Políticas configurables**: Por grupo con ajustes en tiempo real vía comandos
+- **Blacklist/Whitelist**: Gestión de URLs permitidas/bloqueadas
 
-## Stack Tecnologico
-
-- **Bot:** Node.js, TypeScript, grammY, Hono
-- **Dashboard:** Next.js 15, React 19, TailwindCSS, lucide-react
-- **Base de datos:** PostgreSQL + Prisma ORM
-- **Auth:** NextAuth.js
-- **Build:** Turborepo
-
-## Estructura del Proyecto
-
-```
-schrodinger-platform/
-├── apps/
-│   ├── bot/                    # Bot de Telegram
-│   │   ├── api/                # API webhook endpoint
-│   │   └── src/
-│   │       ├── commands/       # Comandos del bot
-│   │       ├── middlewares/    # Middlewares (flood, anti-link)
-│   │       ├── services/       # Servicios (logging, moderation)
-│   │       └── database/       # Cliente DB compartido
-│   │
-│   └── dashboard/              # Dashboard web
-│       ├── app/                # Next.js app router
-│       ├── components/         # Componentes UI
-│       └── lib/                # Utilidades
-│
-├── packages/
-│   ├── shared/                 # Tipos y schemas compartidos
-│   ├── database/               # Prisma schema y cliente
-│   ├── threat-intel/           # Servicios VirusTotal/AbuseIPDB
-│   └── auth/                   # Configuracion NextAuth
-│
-├── .env.example
-├── turbo.json
-└── package.json
-```
-
-## Instalacion
-
-### Requisitos
-
-- Node.js >= 20
-- PostgreSQL 15+
-- Redis (opcional, para caching avanzado)
-
-### Pasos
-
-1. Clonar el repositorio
-
-```bash
-git clone <repo-url>
-cd Schrodinger_bot
-```
-
-2. Copiar y configurar variables de entorno
-
-```bash
-cp .env.example .env
-```
-
-3. Instalar dependencias
-
-```bash
-npm install
-```
-
-4. Configurar la base de datos
-
-```bash
-npm run db:generate
-npm run db:migrate
-npm run db:seed
-```
-
-5. Iniciar en desarrollo
-
-```bash
-npm run dev
-```
-
-## Variables de Entorno
-
-| Variable | Descripcion |
-|----------|-------------|
-| `TELEGRAM_BOT_TOKEN` | Token del bot de Telegram |
-| `TELEGRAM_WEBHOOK_SECRET` | Secret para webhook en produccion |
-| `DATABASE_URL` | URL de conexion PostgreSQL |
-| `REDIS_URL` | URL de Redis (opcional) |
-| `NEXTAUTH_SECRET` | Secret para NextAuth |
-| `NEXTAUTH_URL` | URL base del dashboard |
-| `VIRUSTOTAL_API_KEY` | API Key de VirusTotal |
-| `ABUSEIPDB_API_KEY` | API Key de AbuseIPDB |
-| `VT_ENABLED` | Habilitar VirusTotal (true/false) |
-| `ABUSE_ENABLED` | Habilitar AbuseIPDB (true/false) |
-| `DEFAULT_WARN_LIMIT` | Limite de warns antes de ban |
-| `DEFAULT_MUTE_MINUTES` | Duracion por defecto del mute |
-| `FLOOD_LIMIT` | Mensajes para detectar flood |
-| `FLOOD_INTERVAL` | Intervalo en ms para flood detection |
-
-## Comandos del Bot
-
-### Basicos
-- `/start` - Iniciar el bot
-- `/help` - Mostrar ayuda
-- `/ping` - Verificar estado
-- `/settings` - Ver configuracion del grupo
-
-### Moderacion
-- `/warn [motivo]` - Advertir usuario (responder a mensaje)
-- `/mute [minutos]` - Silenciar usuario
-- `/ban [motivo]` - Banear usuario
-- `/kick` - Expulsar usuario
-- `/unban` - Desbanear usuario
-- `/unmute` - Desilenciar usuario
-
-### Threat Intelligence
-- `/scanlink [url]` - Escanear URL con VirusTotal
-- `/scanip [ip]` - Verificar IP con AbuseIPDB
-- `/threatcheck` - Resumen de amenazas del grupo
-
-### Listas
-- `/blacklist [url]` - Anadir URL a lista negra
-- `/blacklist_rm [url]` - Eliminar de lista negra
-- `/whitelist [url]` - Anadir URL a lista blanca
-- `/whitelist_rm [url]` - Eliminar de lista blanca
-
-### Politicas
-- `/policy` - Ver politica actual
-- `/policy_set <clave> <valor>` - Configurar politicas
-- `/integrations` - Ver estado de integraciones
-
-## Comandos de Desarrollo
-
-```bash
-# Instalar dependencias
-npm install
-
-# Desarrollo
-npm run dev
-
-# Build
-npm run build
-
-# Base de datos
-npm run db:generate   # Generar cliente Prisma
-npm run db:migrate    # Ejecutar migraciones
-npm run db:push       # Push schema a DB
-npm run db:seed       # Seed inicial
-npm run db:studio     # Abrir Prisma Studio
-```
-
-## Despliegue
-
-### Vercel
-
-El dashboard se puede desplegar en Vercel directamente:
-
-1. Conectar el repositorio a Vercel
-2. Configurar variables de entorno
-3. Deploy
-
-### Bot (Polling)
-
-Para desarrollo o servidores con acceso persistente:
-
-```bash
-cd apps/bot
-npm run dev
-```
-
-### Bot (Webhook)
-
-Para produccion en serverless (Vercel, Railway):
-
-1. Configurar `TELEGRAM_WEBHOOK_SECRET`
-2. Configurar el webhook en Telegram:
-
-```bash
-curl -X POST "https://api.telegram.org/bot<token>/setWebhook" \
-  -d "url=https://tu-dominio.com/webhook/<secret>"
-```
+### Dashboard Web (Next.js)
+- **Analytics**: Estadísticas de eventos de seguridad y moderación
+- **Gestión de grupos**: Ver y administrar todos los grupos con el bot
+- **Logs**: Ver historial de acciones de moderación
+- **Configuración**: Ajustes de integraciones y políticas
+- **RBAC**: Control de acceso basado en roles (SUPER_ADMIN, OWNER, ADMIN, MODERATOR, VIEWER)
 
 ## Arquitectura
 
-### Flujo de Seguridad
+```
+Schrodinger_bot/
+├── apps/
+│   ├── bot/              # Bot de Telegram (Grammy)
+│   └── dashboard/        # Dashboard web (Next.js 15 + React 19)
+├── packages/
+│   ├── database/         # Prisma + PostgreSQL
+│   ├── auth/            # NextAuth v4 configuración
+│   ├── threat-intel/    # VirusTotal + AbuseIPDB clients
+│   └── shared/          # Tipos, schemas y utilidades compartidas
+```
 
-1. Usuario publica un mensaje
-2. Middleware de flood detection verifica rate limit
-3. Middleware anti-link extrae URLs del mensaje
-4. URLs en blacklist se bloquean inmediatamente
-5. URLs no permitidas se escanean con VirusTotal
-6. Si el score es malicioso: se elimina el mensaje y se aplica warn
-7. Se registran todos los eventos en logs
+## Requisitos
 
-### Multi-Tenant
+- Node.js >= 20
+- PostgreSQL >= 14
+- Redis (opcional, para caching)
+- Token de Telegram Bot
+- API Keys: VirusTotal y AbuseIPDB (opcional)
 
-Cada grupo de Telegram tiene:
-- Politicas de seguridad independientes
-- Listas blancas/negras propias
-- Logs y estadisticas separadas
+## Instalación
+
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/leonardovarona42/Schrodinger_bot.git
+cd Schrodinger_bot
+```
+
+2. Instalar dependencias:
+```bash
+npm install
+```
+
+3. Configurar variables de entorno:
+Crea un archivo `.env` en la raíz basado en `.env.example`:
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/schrodinger"
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN="tu_token_aqui"
+TELEGRAM_WEBHOOK_SECRET="secreto_para_webhook"
+
+# NextAuth
+NEXTAUTH_SECRET="secreto_nextauth"
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD_HASH="bcrypt_hash_aqui"
+
+# Threat Intelligence (opcional)
+VIRUSTOTAL_API_KEY="tu_api_key"
+ABUSEIPDB_API_KEY="tu_api_key"
+VT_ENABLED="false"
+ABUSE_ENABLED="false"
+
+# Configuraciones por defecto
+DEFAULT_WARN_LIMIT=3
+DEFAULT_MUTE_MINUTES=15
+FLOOD_LIMIT=5
+FLOOD_INTERVAL=3000
+```
+
+4. Ejecutar migraciones:
+```bash
+npm run db:migrate
+```
+
+5. Generar hash de contraseña para ADMIN_PASSWORD_HASH:
+```bash
+node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('tu_password', 10).then(console.log)"
+```
+
+6. Iniciar en modo desarrollo:
+```bash
+npm run dev
+```
+
+## Comandos del Bot
+
+### Moderación (requiere permisos)
+- `/warn` - Advertir usuario (respondiendo a un mensaje)
+- `/ban` - Banear usuario
+- `/kick` - Expulsar usuario
+- `/mute [minutos]` - Silenciar usuario
+- `/unban` - Desbanear usuario
+- `/unmute` - Desilenciar usuario
+
+### Configuración
+- `/policy_set <clave> <valor>` - Cambiar políticas del grupo
+  - Ejemplos: `/policy_set anti_flood on`, `/policy_set warn_limit 5`
+- `/policy_get` - Ver políticas actuales
+
+### Threat Intelligence
+- `/scanlink [url]` - Escanear enlace con VirusTotal
+- `/scanip [ip]` - Verificar IP con AbuseIPDB
+- `/integrations` - Ver estado de integraciones
+
+## Dashboard
+
+Accede a `http://localhost:3000` para el dashboard.
+
+### Roles de Usuario
+- **SUPER_ADMIN**: Acceso total
+- **OWNER**: Control total excepto configuración global
+- **ADMIN**: Gestión de grupos y políticas
+- **MODERATOR**: Moderación básica (warn, kick, mute)
+- **VIEWER**: Solo lectura
+
+## Scripts Disponibles
+
+```bash
+npm run dev          # Inicia todos los servicios en desarrollo
+npm run build        # Build de todos los paquetes
+npm run lint         # Linting
+npm run db:generate  # Generar cliente Prisma
+npm run db:migrate   # Ejecutar migraciones
+npm run db:studio    # Abrir Prisma Studio
+```
+
+## Seguridad
+
+- Autenticación con NextAuth v4 + bcrypt
+- RBAC (Role-Based Access Control)
+- Protección contra SSRF en escaneo de URLs
+- Validación de permisos en todos los comandos
+- Cookies seguras (httpOnly, sameSite, secure en producción)
+- Headers de seguridad (CSP, X-Frame-Options, etc.)
+
+## Contribuir
+
+Ver [CONTRIBUTING.md](./CONTRIBUTING.md) para detalles sobre cómo contribuir.
 
 ## Licencia
 
