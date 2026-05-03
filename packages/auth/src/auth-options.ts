@@ -2,6 +2,7 @@ import { NextAuthOptions, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prisma } from "@schrodinger/database"
+import { verifyMFAToken, getUserMFASecret, isMFAEnabled } from "./mfa-utils"
 
 declare module "next-auth" {
   interface Session {
@@ -74,6 +75,21 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, validPassHash)
         if (!isValid) {
           return null
+        }
+
+        // Check if MFA is enabled for this user
+        const mfaEnabled = await isMFAEnabled(credentials.username)
+
+        if (mfaEnabled) {
+          const mfaToken = credentials.mfaToken as string
+          if (!mfaToken) {
+            throw new Error("MFA_REQUIRED")
+          }
+
+          const mfaSecret = await getUserMFASecret(credentials.username)
+          if (!mfaSecret || !verifyMFAToken(mfaToken, mfaSecret)) {
+            throw new Error("Invalid MFA token")
+          }
         }
 
         return {
