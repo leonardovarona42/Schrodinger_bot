@@ -3,6 +3,7 @@ import { prisma } from "@schrodinger/database"
 import { MESSAGES, getOrCreateUser } from "../database/client.js"
 import { extractUrls } from "@schrodinger/shared"
 import { hasModPermission, getGroupFromCtx } from "../utils/bot-utils"
+import { detectLanguage, t } from "../i18n/translations"
 
 function parseUserTarget(text: string): { userId: number | null; reason: string } {
   const reply = text.split("\n")[0].trim()
@@ -19,9 +20,10 @@ export function registerModerationCommands(bot: Bot) {
   bot.command("warn", async (ctx) => {
     if (!ctx.chat || ctx.chat.type === "private") return
 
+    const lang = detectLanguage(ctx)
     const hasPermission = await hasModPermission(ctx)
     if (!hasPermission) {
-      await ctx.reply("No tienes permisos para ejecutar este comando.")
+      await ctx.reply(t(lang, "noPermission"))
       return
     }
 
@@ -29,7 +31,7 @@ export function registerModerationCommands(bot: Bot) {
     const replyUser = reply?.from
 
     if (!replyUser) {
-      await ctx.reply("Responde a un mensaje para advertir al usuario.")
+      await ctx.reply(t(lang, "replyToMessage", { action: t(lang, "warnCommand") }))
       return
     }
 
@@ -59,14 +61,18 @@ export function registerModerationCommands(bot: Bot) {
 
     const policy = await prisma.policy.findUnique({ where: { groupId: group.id } })
 
-    let response = `⚠️ *${replyUser.first_name}* ha sido advertido (${warnCount} warns)\nMotivo: ${reason}`
+    let response = t(lang, "userWarned", {
+      name: `*${replyUser.first_name}*`,
+      count: warnCount,
+      reason: reason,
+    })
 
     if (policy?.autoBanOnWarn && warnCount >= policy.warnLimit) {
       try {
         await ctx.api.banChatMember(ctx.chat.id, replyUser.id)
-        response += "\n🚫 Baneado automáticamente por alcanzar el límite de warns."
+        response += "\n" + t(lang, "userBanned", { reason: `Baneado automáticamente por alcanzar el límite de warns.` })
       } catch {
-        response += "\n⚠️ No se pudo banear al usuario."
+        response += "\n⚠️ " + t(lang, "noPermission")
       }
     }
 
