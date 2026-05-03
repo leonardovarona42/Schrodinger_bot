@@ -1,5 +1,6 @@
 import { prisma } from "@schrodinger/database"
 import { VirusTotalUrlReport, ScanResult, isSSRFProtected } from "@schrodinger/shared"
+import { cache } from "./cache"
 
 export class VirusTotalService {
   private apiKey: string
@@ -27,6 +28,13 @@ export class VirusTotalService {
       }
     }
 
+    // Check cache first
+    const cacheKey = `vt:url:${url}`
+    const cached = await cache.get(cacheKey)
+    if (cached) {
+      return cached as ScanResult
+    }
+
     try {
       const encodedUrl = Buffer.from(url).toString("base64url")
       const reportUrl = `${this.baseUrl}/urls/${encodedUrl}`
@@ -38,7 +46,11 @@ export class VirusTotalService {
       })
 
       if (response.status === 404) {
-        return await this.submitAndPollUrl(url)
+        const result = await this.submitAndPollUrl(url)
+        if (result) {
+          await cache.set(cacheKey, result, { ttlSeconds: 3600 })
+        }
+        return result
       }
 
       if (!response.ok) {
@@ -47,7 +59,9 @@ export class VirusTotalService {
       }
 
       const data = await response.json()
-      return this.parseUrlReport(data)
+      const result = this.parseUrlReport(data)
+      await cache.set(cacheKey, result, { ttlSeconds: 3600 })
+      return result
     } catch (error) {
       console.error("VirusTotal scan error:", error)
       return null

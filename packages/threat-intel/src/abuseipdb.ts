@@ -1,5 +1,6 @@
 import { prisma } from "@schrodinger/database"
 import { ScanResult, isPrivateIP } from "@schrodinger/shared"
+import { cache } from "./cache"
 
 export class AbuseIPDBService {
   private apiKey: string
@@ -36,6 +37,13 @@ export class AbuseIPDBService {
       }
     }
 
+    // Check cache first
+    const cacheKey = `abuseipdb:ip:${ip}`
+    const cached = await cache.get(cacheKey)
+    if (cached) {
+      return cached as ScanResult
+    }
+
     try {
       const params = new URLSearchParams({
         ipAddress: ip,
@@ -58,7 +66,12 @@ export class AbuseIPDBService {
       }
 
       const data = await response.json()
-      return this.parseReport(data)
+      const result = this.parseReport(data)
+
+      // Cache for 1 hour (3600 seconds)
+      await cache.set(cacheKey, result, { ttlSeconds: 3600 })
+
+      return result
     } catch (error) {
       console.error("AbuseIPDB check error:", error)
       return null
