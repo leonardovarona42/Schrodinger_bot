@@ -2,15 +2,7 @@ import { Bot, Context } from "grammy"
 import { prisma } from "@schrodinger/database"
 import { MESSAGES, getOrCreateUser } from "../database/client.js"
 import { extractUrls } from "@schrodinger/shared"
-
-const MODERATOR_ROLES = ["SUPER_ADMIN", "OWNER", "ADMIN", "MODERATOR"]
-
-async function hasModPermission(ctx: Context): Promise<boolean> {
-  if (!ctx.from) return false
-  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(ctx.from.id) } })
-  if (!user) return false
-  return MODERATOR_ROLES.includes(user.role)
-}
+import { hasModPermission, getGroupFromCtx } from "../utils/bot-utils"
 
 function parseUserTarget(text: string): { userId: number | null; reason: string } {
   const reply = text.split("\n")[0].trim()
@@ -45,7 +37,7 @@ export function registerModerationCommands(bot: Bot) {
 
     await getOrCreateUser(replyUser.id, replyUser.username || undefined, replyUser.first_name || undefined)
     const targetUser = await prisma.user.findUnique({ where: { telegramId: replyUser.id } })
-    const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+    const group = await getGroupFromCtx(ctx)
 
     if (!targetUser || !group) {
       await ctx.reply("Error al registrar la advertencia.")
@@ -107,25 +99,25 @@ export function registerModerationCommands(bot: Bot) {
       return
     }
 
-    const duration = parseInt(ctx.match || "15", 10) || 15
-    const untilDate = Math.floor(Date.now() / 1000) + duration * 60
+     const duration = parseInt(ctx.match || "15", 10) || 15
+     const untilDate = Math.floor(Date.now() / 1000) + duration * 60
 
-    try {
-      await ctx.api.restrictChatMember(ctx.chat.id, replyUser.id, {
-        can_send_messages: false,
-        can_send_audios: false,
-        can_send_documents: false,
-        can_send_photos: false,
-        can_send_videos: false,
-        can_send_video_notes: false,
-        can_send_voice_notes: false,
-        can_send_polls: false,
-        can_send_other_messages: false,
-        can_add_web_page_previews: false,
-        until_date: untilDate,
-      })
+     try {
+       await ctx.api.restrictChatMember(ctx.chat.id, replyUser.id, {
+         can_send_messages: false,
+         can_send_audios: false,
+         can_send_documents: false,
+         can_send_photos: false,
+         can_send_videos: false,
+         can_send_video_notes: false,
+         can_send_voice_notes: false,
+         can_send_polls: false,
+         can_send_other_messages: false,
+         can_add_web_page_previews: false,
+         until_date: untilDate,
+       })
 
-      const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+       const group = await getGroupFromCtx(ctx)
       if (group) {
         await prisma.log.create({
           data: {
@@ -162,12 +154,12 @@ export function registerModerationCommands(bot: Bot) {
       return
     }
 
-    const reason = ctx.match?.trim() || "Sin motivo especificado"
+     const reason = ctx.match?.trim() || "Sin motivo especificado"
 
-    try {
-      await ctx.api.banChatMember(ctx.chat.id, replyUser.id)
+     try {
+       await ctx.api.banChatMember(ctx.chat.id, replyUser.id)
 
-      const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+       const group = await getGroupFromCtx(ctx)
       if (group) {
         await prisma.log.create({
           data: {
@@ -202,11 +194,11 @@ export function registerModerationCommands(bot: Bot) {
       return
     }
 
-    try {
-      await ctx.api.banChatMember(ctx.chat.id, replyUser.id)
-      await ctx.api.unbanChatMember(ctx.chat.id, replyUser.id)
+     try {
+       await ctx.api.banChatMember(ctx.chat.id, replyUser.id)
+       await ctx.api.unbanChatMember(ctx.chat.id, replyUser.id)
 
-      const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+       const group = await getGroupFromCtx(ctx)
       if (group) {
         await prisma.log.create({
           data: {
@@ -240,10 +232,10 @@ export function registerModerationCommands(bot: Bot) {
       return
     }
 
-    try {
-      await ctx.api.unbanChatMember(ctx.chat.id, replyUser.id)
+     try {
+       await ctx.api.unbanChatMember(ctx.chat.id, replyUser.id)
 
-      const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+       const group = await getGroupFromCtx(ctx)
       if (group) {
         await prisma.log.create({
           data: {
@@ -277,21 +269,21 @@ export function registerModerationCommands(bot: Bot) {
       return
     }
 
-    try {
-      await ctx.api.restrictChatMember(ctx.chat.id, replyUser.id, {
-        can_send_messages: true,
-        can_send_audios: true,
-        can_send_documents: true,
-        can_send_photos: true,
-        can_send_videos: true,
-        can_send_video_notes: true,
-        can_send_voice_notes: true,
-        can_send_polls: true,
-        can_send_other_messages: true,
-        can_add_web_page_previews: true,
-      })
+     try {
+       await ctx.api.restrictChatMember(ctx.chat.id, replyUser.id, {
+         can_send_messages: true,
+         can_send_audios: true,
+         can_send_documents: true,
+         can_send_photos: true,
+         can_send_videos: true,
+         can_send_video_notes: true,
+         can_send_voice_notes: true,
+         can_send_polls: true,
+         can_send_other_messages: true,
+         can_add_web_page_previews: true,
+       })
 
-      const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+       const group = await getGroupFromCtx(ctx)
       if (group) {
         await prisma.log.create({
           data: {

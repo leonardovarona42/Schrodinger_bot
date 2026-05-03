@@ -45,6 +45,7 @@ model User {
   updatedAt   DateTime @updatedAt
 
   @@index([telegramId])
+  @@index([role])
 }
 
 model Group {
@@ -63,6 +64,7 @@ model Group {
   updatedAt      DateTime @updatedAt
 
   @@index([telegramId])
+  @@index([createdAt])
 }
 
 model Warn {
@@ -79,6 +81,8 @@ model Warn {
   creator User?   @relation("WarnCreator", fields: [createdById], references: [id])
 
   @@index([userId, groupId])
+  @@index([groupId, isActive])
+  @@index([createdById])
 }
 
 model Policy {
@@ -135,6 +139,8 @@ model Log {
 
   @@index([groupId, createdAt])
   @@index([actionType])
+  @@index([actorId])
+  @@index([targetId])
 }
 
 model BlacklistedUrl {

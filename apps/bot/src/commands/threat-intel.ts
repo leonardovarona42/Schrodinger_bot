@@ -1,17 +1,8 @@
 import { Bot, Context } from "grammy"
 import { threatIntel } from "@schrodinger/threat-intel"
 import { prisma } from "@schrodinger/database"
-import { extractUrls, extractIPs, isSSRFProtected, PolicySchema } from "@schrodinger/shared"
-import { z } from "zod"
-
-const MODERATOR_ROLES = ["SUPER_ADMIN", "OWNER", "ADMIN", "MODERATOR"]
-
-async function hasModPermission(ctx: Context): Promise<boolean> {
-  if (!ctx.from) return false
-  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(ctx.from.id) } })
-  if (!user) return false
-  return MODERATOR_ROLES.includes(user.role)
-}
+import { extractUrls, extractIPs, isSSRFProtected } from "@schrodinger/shared"
+import { hasModPermission, getGroupFromCtx } from "../utils/bot-utils"
 
 export function registerThreatIntelCommands(bot: Bot) {
   bot.command("scanlink", async (ctx) => {
@@ -301,7 +292,7 @@ export function registerThreatIntelCommands(bot: Bot) {
     }
 
     const [key, value] = match.split(/\s+/)
-    const group = await prisma.group.findUnique({ where: { telegramId: BigInt(ctx.chat.id) } })
+    const group = await getGroupFromCtx(ctx)
     if (!group) return
 
     let policy = await prisma.policy.findUnique({ where: { groupId: group.id } })
