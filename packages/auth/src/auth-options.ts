@@ -1,6 +1,7 @@
 import { NextAuthOptions, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
+import { prisma } from "@schrodinger/database"
 
 declare module "next-auth" {
   interface Session {
@@ -22,6 +23,41 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
           return null
+        }
+
+        // Rate limiting check (max 5 attempts per 15 minutes per username)
+        const rateLimitKey = `login_attempts:${credentials.username}`
+        const rateLimitEntry = await prisma.cacheEntry.findUnique({ where: { key: rateLimitKey } })
+
+        if (rateLimitEntry) {
+          const data = rateLimitEntry.value as { attempts: number; firstAttempt: string }
+          const firstAttempt = new Date(data.firstAttempt)
+          const now = new Date()
+
+          if (now.getTime() - firstAttempt.getTime() < 15 * 60 * 1000) {
+            if (data.attempts >= 5) {
+              throw new Error("Too many login attempts. Please try again in 15 minutes.")
+            }
+            await prisma.cacheEntry.update({
+              where: { key: rateLimitKey },
+              data: { value: { attempts: data.attempts + 1, firstAttempt: data.firstAttempt } },
+            })
+          } else {
+            // Reset if window has passed
+            await prisma.cacheEntry.update({
+              where: { key: rateLimitKey },
+              data: { value: { attempts: 1, firstAttempt: now.toISOString() }, expiresAt: new Date(now.getTime() + 15 * 60 * 1000) },
+            })
+          }
+        } else {
+          const now = new Date()
+          await prisma.cacheEntry.create({
+            data: {
+              key: rateLimitKey,
+              value: { attempts: 1, firstAttempt: now.toISOString() },
+              expiresAt: new Date(now.getTime() + 15 * 60 * 1000),
+            },
+          })
         }
 
         const validUser = process.env.ADMIN_USERNAME
