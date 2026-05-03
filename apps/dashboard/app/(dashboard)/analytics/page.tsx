@@ -12,8 +12,8 @@ export default async function AnalyticsPage() {
 
   const actionStats = await prisma.log.groupBy({
     by: ["actionType"],
-    _count: true,
-    orderBy: { _count: "desc" },
+    _count: { actionType: true },
+    orderBy: { _count: { actionType: "desc" } },
     take: 10,
   })
 
@@ -54,12 +54,12 @@ export default async function AnalyticsPage() {
               <p className="text-sm text-slate-500 text-center py-8">Sin datos disponibles</p>
             ) : (
               actionStats.map((stat) => {
-                const percentage = totalLogs > 0 ? Math.round((stat._count / totalLogs) * 100) : 0
+                const percentage = totalLogs > 0 ? Math.round((stat._count.actionType / totalLogs) * 100) : 0
                 return (
                   <div key={stat.actionType}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-slate-700">{stat.actionType}</span>
-                      <span className="text-sm text-slate-500">{stat._count} ({percentage}%)</span>
+                      <span className="text-sm text-slate-500">{stat._count.actionType} ({percentage}%)</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-2.5">
                       <div
