@@ -13,24 +13,32 @@ import {
   Settings,
   Atom,
 } from "lucide-react"
+import { isAdmin, isModerator } from "@/lib/rbac"
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/groups", label: "Grupos", icon: Users },
-  { href: "/policies", label: "Politicas", icon: Shield },
-  { href: "/integrations", label: "Integraciones", icon: Plug },
-  { href: "/logs", label: "Logs", icon: ScrollText },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, minRole: "VIEWER" as const },
+  { href: "/groups", label: "Grupos", icon: Users, minRole: "MODERATOR" as const },
+  { href: "/policies", label: "Politicas", icon: Shield, minRole: "MODERATOR" as const },
+  { href: "/integrations", label: "Integraciones", icon: Plug, minRole: "ADMIN" as const },
+  { href: "/logs", label: "Logs", icon: ScrollText, minRole: "MODERATOR" as const },
+  { href: "/analytics", label: "Analytics", icon: BarChart3, minRole: "MODERATOR" as const },
 ]
 
 const adminNavItems = [
-  { href: "/settings", label: "Configuracion", icon: Settings },
+  { href: "/settings", label: "Configuracion", icon: Settings, minRole: "ADMIN" as const },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const isAdmin = ["SUPER_ADMIN", "OWNER", "ADMIN"].includes(session?.user?.role as string)
+  const userRole = session?.user?.role as string || "VIEWER"
+
+  const canAccess = (minRole: string) => {
+    if (minRole === "VIEWER") return true
+    if (minRole === "MODERATOR") return isModerator(userRole as any)
+    if (minRole === "ADMIN") return isAdmin(userRole as any)
+    return false
+  }
 
   return (
     <aside className="w-64 bg-slate-900 text-white flex flex-col min-h-screen shrink-0">
@@ -47,7 +55,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => {
+        {navItems.filter(item => canAccess(item.minRole)).map((item) => {
           const isActive = pathname === item.href
           return (
             <Link
@@ -65,9 +73,9 @@ export function Sidebar() {
           )
         })}
 
-        {isAdmin && (
+        {isAdmin(userRole as any) && (
           <div className="pt-4 border-t border-white/10 mt-4">
-            {adminNavItems.map((item) => {
+            {adminNavItems.filter(item => canAccess(item.minRole)).map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link

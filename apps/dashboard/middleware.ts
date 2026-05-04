@@ -1,8 +1,7 @@
 import { withAuth } from "next-auth/middleware"
 import { getToken } from "next-auth/jwt"
 import { NextResponse } from "next/server"
-
-const ADMIN_ROLES = ["SUPER_ADMIN", "OWNER", "ADMIN"]
+import { isAdmin, isModerator } from "./lib/rbac"
 
 export default withAuth(
   async function middleware(req) {
@@ -13,9 +12,19 @@ export default withAuth(
     }
 
     const path = req.nextUrl.pathname
+    const userRole = token.role as string
 
-    if (path.startsWith("/settings") && !ADMIN_ROLES.includes(token.role as string)) {
-      return NextResponse.redirect(new URL("/", req.url))
+    // Admin-only routes
+    if (path.startsWith("/settings") && !isAdmin(userRole as any)) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
+
+    // Moderator-only routes
+    if (
+      (path.startsWith("/logs") || path.startsWith("/analytics")) &&
+      !isModerator(userRole as any)
+    ) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
     }
 
     return NextResponse.next()
