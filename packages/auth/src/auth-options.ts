@@ -20,6 +20,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
+        mfaToken: { label: "MFA Token", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {

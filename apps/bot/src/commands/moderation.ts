@@ -1,6 +1,6 @@
 import { Bot, Context } from "grammy"
 import { prisma } from "@schrodinger/database"
-import { MESSAGES, getOrCreateUser } from "../database/client.js"
+import { getOrCreateUser } from "../database/client.js"
 import { extractUrls } from "@schrodinger/shared"
 import { hasModPermission, getGroupFromCtx } from "../utils/bot-utils"
 import { detectLanguage, t } from "../i18n/translations"
@@ -37,8 +37,8 @@ export function registerModerationCommands(bot: Bot) {
 
     const reason = ctx.match?.trim() || "Sin motivo especificado"
 
-    await getOrCreateUser(replyUser.id, replyUser.username || undefined, replyUser.first_name || undefined)
-    const targetUser = await prisma.user.findUnique({ where: { telegramId: replyUser.id } })
+    await getOrCreateUser(BigInt(replyUser.id), replyUser.username || undefined, replyUser.first_name || undefined)
+    const targetUser = await prisma.user.findUnique({ where: { telegramId: BigInt(replyUser.id) } })
     const group = await getGroupFromCtx(ctx)
 
     if (!targetUser || !group) {
@@ -106,7 +106,6 @@ export function registerModerationCommands(bot: Bot) {
     }
 
      const duration = parseInt(ctx.match || "15", 10) || 15
-     const untilDate = Math.floor(Date.now() / 1000) + duration * 60
 
      try {
        await ctx.api.restrictChatMember(ctx.chat.id, replyUser.id, {
@@ -120,7 +119,6 @@ export function registerModerationCommands(bot: Bot) {
          can_send_polls: false,
          can_send_other_messages: false,
          can_add_web_page_previews: false,
-         until_date: untilDate,
        })
 
        const group = await getGroupFromCtx(ctx)

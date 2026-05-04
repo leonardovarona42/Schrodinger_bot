@@ -1,11 +1,11 @@
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@schrodinger/auth"
 import { prisma } from "@schrodinger/database"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions, req)
+  const session = await getServerSession(authOptions)
 
   if (!session) {
     return new Response("Unauthorized", { status: 401 })
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         const data = JSON.stringify({
           id: log.id,
           actionType: log.actionType,
-          groupName: log.group.name,
+          groupName: (log as any).group?.name ?? "Unknown",
           details: log.details,
           createdAt: log.createdAt,
         })

@@ -1,0 +1,11 @@
+import { Role } from "./types.js";
+export declare function isAdmin(role: Role): boolean;
+export declare function isModerator(role: Role): boolean;
+export declare function hasPermission(userRole: Role, requiredRole: Role): boolean;
+export declare function formatDuration(minutes: number): string;
+export declare function escapeMarkdown(text: string): string;
+export declare function extractUrls(text: string): string[];
+export declare function extractIPs(text: string): string[];
+export declare function isTelegramUrl(url: string): boolean;
+export declare function isPrivateIP(ip: string): boolean;
+export declare function isSSRFProtected(url: string): boolean;

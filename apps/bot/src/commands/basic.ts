@@ -4,8 +4,9 @@ import { getOrCreateUser, getGroupPolicy } from "../database/client.js"
 
 export function registerBasicCommands(bot: Bot) {
   bot.command("start", async (ctx) => {
+    if (!ctx.from) return
     await getOrCreateUser(
-      ctx.from.id,
+      BigInt(ctx.from.id),
       ctx.from.username || undefined,
       ctx.from.first_name || undefined
     )
@@ -18,9 +19,9 @@ export function registerBasicCommands(bot: Bot) {
 
   bot.command("ping", async (ctx) => {
     const start = Date.now()
-    await ctx.reply("Pinging...")
+    const msg = await ctx.reply("Pinging...")
     const latency = Date.now() - start
-    await ctx.editText(`Pong! Latency: ${latency}ms`)
+    await ctx.api.editMessageText(msg.chat.id, msg.message_id, `Pong! Latency: ${latency}ms`)
   })
 
   bot.command("settings", async (ctx) => {

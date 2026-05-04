@@ -1,7 +1,7 @@
 import { prisma } from "@schrodinger/database"
 import { Card, Badge } from "@/components/ui"
 import { ScrollText } from "lucide-react"
-import ExportButtons from "@/components/export-buttons"
+import { ExportButtons } from "@/components/export-buttons"
 
 const actionTypeColors: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
   WARN: "warning",

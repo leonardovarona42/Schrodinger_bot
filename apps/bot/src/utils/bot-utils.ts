@@ -1,19 +1,19 @@
 import { Context } from "grammy"
 import { prisma } from "@schrodinger/database"
-import { MODERATOR_ROLES, ADMIN_ROLES } from "@schrodinger/shared"
+import { MODERATOR_ROLES, ADMIN_ROLES, Role } from "@schrodinger/shared"
 
 export async function hasModPermission(ctx: Context): Promise<boolean> {
   if (!ctx.from) return false
   const user = await prisma.user.findUnique({ where: { telegramId: BigInt(ctx.from.id) } })
   if (!user) return false
-  return MODERATOR_ROLES.includes(user.role as any)
+  return (MODERATOR_ROLES as readonly string[]).includes(user.role)
 }
 
 export async function hasAdminPermission(ctx: Context): Promise<boolean> {
   if (!ctx.from) return false
   const user = await prisma.user.findUnique({ where: { telegramId: BigInt(ctx.from.id) } })
   if (!user) return false
-  return ADMIN_ROLES.includes(user.role as any)
+  return (ADMIN_ROLES as readonly string[]).includes(user.role)
 }
 
 export async function getGroupFromCtx(ctx: Context) {

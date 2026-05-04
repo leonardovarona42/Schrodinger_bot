@@ -1,11 +1,10 @@
 import { authenticator } from "otplib"
-import * as qrcode from "qrcode"
 import { prisma } from "@schrodinger/database"
 
 export interface MFASetupResult {
   secret: string
-  qrCodeUrl: string
   otpAuthUrl: string
+  qrCodeUrl: string
 }
 
 export async function generateMFASecret(userName: string): Promise<MFASetupResult> {
@@ -13,9 +12,7 @@ export async function generateMFASecret(userName: string): Promise<MFASetupResul
 
   const otpAuthUrl = authenticator.keyuri(userName, "SchrodingerSec", secret)
 
-  const qrCodeUrl = await qrcode.toDataURL(otpAuthUrl)
-
-  return { secret, qrCodeUrl, otpAuthUrl }
+  return { secret, otpAuthUrl, qrCodeUrl: "" }
 }
 
 export function verifyMFAToken(token: string, secret: string): boolean {
@@ -61,5 +58,6 @@ export async function isMFAEnabled(userName: string): Promise<boolean> {
   const entry = await prisma.cacheEntry.findUnique({
     where: { key: `mfa_enabled:${userName}` },
   })
-  return entry?.value?.enabled === true
+  const value = entry?.value as { enabled?: boolean } | undefined
+  return value?.enabled === true
 }

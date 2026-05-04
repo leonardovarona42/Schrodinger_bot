@@ -1,8 +1,9 @@
 import { Bot, Context } from "grammy"
 import { threatIntel } from "@schrodinger/threat-intel"
 import { prisma } from "@schrodinger/database"
-import { extractUrls, extractIPs, isSSRFProtected } from "@schrodinger/shared"
+import { extractUrls, extractIPs, isSSRFProtected, isPrivateIP } from "@schrodinger/shared"
 import { hasModPermission, getGroupFromCtx } from "../utils/bot-utils"
+import { PolicySchema } from "@schrodinger/shared"
 
 export function registerThreatIntelCommands(bot: Bot) {
   bot.command("scanlink", async (ctx) => {
@@ -37,9 +38,7 @@ export function registerThreatIntelCommands(bot: Bot) {
     const result = await threatIntel.virustotal.scanUrl(urlToScan)
 
     if (!result) {
-      await ctx.editMessageText("No se pudo escanear el enlace. Verifica que VirusTotal esté habilitado.", {
-        message_id: msg.message_id,
-      })
+      await ctx.api.editMessageText(msg.chat.id, msg.message_id, "No se pudo escanear el enlace. Verifica que VirusTotal esté habilitado.")
       return
     }
 
@@ -55,10 +54,8 @@ export function registerThreatIntelCommands(bot: Bot) {
       result.permalink ? `[Ver en VirusTotal](${result.permalink})` : "",
     ].join("\n")
 
-    await ctx.editMessageText(text, {
-      message_id: msg.message_id,
-      parse_mode: "Markdown",
-      disable_web_page_preview: true,
+    await ctx.api.editMessageText(msg.chat.id, msg.message_id, text, {
+      parse_mode: "Markdown"
     })
   })
 
@@ -90,9 +87,7 @@ export function registerThreatIntelCommands(bot: Bot) {
     const result = await threatIntel.abuseipdb.checkIp(ipToScan)
 
     if (!result) {
-      await ctx.editMessageText("No se pudo verificar la IP. Verifica que AbuseIPDB esté habilitado.", {
-        message_id: msg.message_id,
-      })
+      await ctx.api.editMessageText(msg.chat.id, msg.message_id, "No se pudo verificar la IP. Verifica que AbuseIPDB esté habilitado.")
       return
     }
 
@@ -108,8 +103,7 @@ export function registerThreatIntelCommands(bot: Bot) {
       result.permalink ? `[Ver en AbuseIPDB](${result.permalink})` : "",
     ].join("\n")
 
-    await ctx.editMessageText(text, {
-      message_id: msg.message_id,
+    await ctx.api.editMessageText(msg.chat.id, msg.message_id, text, {
       parse_mode: "Markdown",
     })
   })
