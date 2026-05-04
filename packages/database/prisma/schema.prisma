@@ -138,6 +138,7 @@ model Log {
   actor  User? @relation("ActorActions", fields: [actorId], references: [id])
 
   @@index([groupId, createdAt])
+  @@index([groupId, actionType, createdAt])
   @@index([actionType])
   @@index([actorId])
   @@index([targetId])
@@ -153,6 +154,8 @@ model BlacklistedUrl {
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, url])
+  @@index([groupId])
+  @@index([url])
 }
 
 model WhitelistedUrl {
@@ -164,6 +167,8 @@ model WhitelistedUrl {
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, url])
+  @@index([groupId])
+  @@index([url])
 }
 
 model CacheEntry {
