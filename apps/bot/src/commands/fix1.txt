@@ -1,0 +1,1 @@
+﻿      result.permalink ? ``[`` + t(lang, "viewIn") + `` VirusTotal](`` + result.permalink + ``)`` : "",

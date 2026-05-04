@@ -1,12 +1,14 @@
-import { Bot, Context } from "grammy"
+﻿import { Bot, Context } from "grammy"
 import { threatIntel } from "@schrodinger/threat-intel"
 import { prisma } from "@schrodinger/database"
 import { extractUrls, extractIPs, isSSRFProtected, isPrivateIP } from "@schrodinger/shared"
 import { hasModPermission, getGroupFromCtx } from "../utils/bot-utils"
 import { PolicySchema } from "@schrodinger/shared"
+import { detectLanguage, t } from "../i18n/translations"
 
 export function registerThreatIntelCommands(bot: Bot) {
   bot.command("scanlink", async (ctx) => {
+    const lang = detectLanguage(ctx)
     let urlToScan = ctx.match?.trim()
 
     if (!urlToScan) {
@@ -20,7 +22,7 @@ export function registerThreatIntelCommands(bot: Bot) {
     }
 
     if (!urlToScan) {
-      await ctx.reply("Uso: /scanlink <url> o responde a un mensaje con un enlace.")
+      await ctx.reply(t(lang, "scanLinkUsage"))
       return
     }
 
@@ -29,37 +31,38 @@ export function registerThreatIntelCommands(bot: Bot) {
     }
 
     if (!isSSRFProtected(urlToScan)) {
-      await ctx.reply("Enlace no permitido. No se pueden escanear direcciones privadas o locales.")
+      await ctx.reply(t(lang, "ssrfProtected"))
       return
     }
 
-    const msg = await ctx.reply("🔬 Escaneando enlace con VirusTotal...")
+    const msg = await ctx.reply(t(lang, "scanningUrl"))
 
     const result = await threatIntel.virustotal.scanUrl(urlToScan)
 
     if (!result) {
-      await ctx.api.editMessageText(msg.chat.id, msg.message_id, "No se pudo escanear el enlace. Verifica que VirusTotal esté habilitado.")
+      await ctx.api.editMessageText(msg.chat.id, msg.message_id, t(lang, "scanFailed", { tool: "VirusTotal" }))
       return
     }
 
     const icon = result.isMalicious ? "🔴" : "🟢"
     const text = [
-      `${icon} *Resultado del escaneo*`,
+      `${icon} *${t(lang, "scanResultTitle")}*`,
       ``,
       `URL: \`${urlToScan}\``,
-      `Score: ${result.score}%`,
-      `Fuente: VirusTotal`,
+      `${t(lang, "score")}: ${result.score}%`,
+      `Source: VirusTotal`,
       ``,
-      `Detalles: ${result.details}`,
-      result.permalink ? `[Ver en VirusTotal](${result.permalink})` : "",
+      `${t(lang, "details")}: ${result.details}`,
+      result.permalink ? `[${t(lang, "viewIn")} VirusTotal](${result.permalink})` : "",
     ].join("\n")
 
     await ctx.api.editMessageText(msg.chat.id, msg.message_id, text, {
-      parse_mode: "Markdown"
+      parse_mode: "Markdown",
     })
   })
 
   bot.command("scanip", async (ctx) => {
+    const lang = detectLanguage(ctx)
     let ipToScan = ctx.match?.trim()
 
     if (!ipToScan) {
@@ -72,35 +75,35 @@ export function registerThreatIntelCommands(bot: Bot) {
       }
     }
 
-     if (!ipToScan) {
-       await ctx.reply("Uso: /scanip <ip> o responde a un mensaje con una dirección IP.")
-       return
-     }
-
-    if (isPrivateIP(ipToScan)) {
-      await ctx.reply("Dirección IP privada no permitida para escaneo.")
+    if (!ipToScan) {
+      await ctx.reply(t(lang, "scanIpUsage"))
       return
     }
 
-    const msg = await ctx.reply("🔍 Verificando IP con AbuseIPDB...")
+    if (isPrivateIP(ipToScan)) {
+      await ctx.reply(t(lang, "privateIpNotAllowed"))
+      return
+    }
+
+    const msg = await ctx.reply(t(lang, "scanningIp"))
 
     const result = await threatIntel.abuseipdb.checkIp(ipToScan)
 
     if (!result) {
-      await ctx.api.editMessageText(msg.chat.id, msg.message_id, "No se pudo verificar la IP. Verifica que AbuseIPDB esté habilitado.")
+      await ctx.api.editMessageText(msg.chat.id, msg.message_id, t(lang, "scanFailed", { tool: "AbuseIPDB" }))
       return
     }
 
     const icon = result.isMalicious ? "🔴" : "🟢"
     const text = [
-      `${icon} *Resultado del escaneo*`,
+      `${icon} *${t(lang, "scanResultTitle")}*`,
       ``,
       `IP: \`${ipToScan}\``,
-      `Score: ${result.score}%`,
-      `Fuente: AbuseIPDB`,
+      `${t(lang, "score")}: ${result.score}%`,
+      `Source: AbuseIPDB`,
       ``,
-      `Detalles: ${result.details}`,
-      result.permalink ? `[Ver en AbuseIPDB](${result.permalink})` : "",
+      `${t(lang, "details")}: ${result.details}`,
+      result.permalink ? `[${t(lang, "viewIn")} AbuseIPDB](${result.permalink})` : "",
     ].join("\n")
 
     await ctx.api.editMessageText(msg.chat.id, msg.message_id, text, {

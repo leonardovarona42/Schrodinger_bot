@@ -31,6 +31,17 @@ export interface Translation {
   invalidIp: string
   noIntegrations: string
   integrationsStatus: string
+  // New i18n keys
+  scanLinkUsage: string
+  scanIpUsage: string
+  scanningUrl: string
+  scanningIp: string
+  scanResultTitle: string
+  scanFailed: string
+  ssrfProtected: string
+  score: string
+  details: string
+  viewIn: string
 }
 
 const es: Translation = {
@@ -64,6 +75,17 @@ const es: Translation = {
   invalidIp: "Formato de IP inválido.",
   noIntegrations: "No hay integraciones configuradas.",
   integrationsStatus: "🔌 *Integraciones*\n\n{virustotal}\n{abuseipdb}",
+  // New i18n keys
+  scanLinkUsage: "Uso: /scanlink <url> o responde a un mensaje con un enlace.",
+  scanIpUsage: "Uso: /scanip <ip> o responde a un mensaje con una dirección IP.",
+  scanningUrl: "🔬 Escaneando enlace con VirusTotal...",
+  scanningIp: "🔍 Verificando IP con AbuseIPDB...",
+  scanResultTitle: "Resultado del escaneo",
+  scanFailed: "No se pudo escanear con {tool}. Verifica que esté habilitado.",
+  ssrfProtected: "Enlace no permitido. No se pueden escanear direcciones privadas o locales.",
+  score: "Puntuación",
+  details: "Detalles",
+  viewIn: "Ver en",
 }
 
 const en: Translation = {
@@ -97,6 +119,17 @@ const en: Translation = {
   invalidIp: "Invalid IP format.",
   noIntegrations: "No integrations configured.",
   integrationsStatus: "🔌 *Integrations*\n\n{virustotal}\n{abuseipdb}",
+  // New i18n keys
+  scanLinkUsage: "Usage: /scanlink <url> or reply to a message with a link.",
+  scanIpUsage: "Usage: /scanip <ip> or reply to a message with an IP address.",
+  scanningUrl: "🔬 Scanning link with VirusTotal...",
+  scanningIp: "🔍 Checking IP with AbuseIPDB...",
+  scanResultTitle: "Scan Result",
+  scanFailed: "Could not scan with {tool}. Verify it is enabled.",
+  ssrfProtected: "Link not allowed. Private or local addresses cannot be scanned.",
+  score: "Score",
+  details: "Details",
+  viewIn: "View in",
 }
 
 const translations: Record<SupportedLanguage, Translation> = {
