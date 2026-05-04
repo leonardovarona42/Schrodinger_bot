@@ -4,6 +4,8 @@ import { redirect } from "next/navigation"
 import { SessionProvider } from "@/components/session-provider"
 import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
+import { AlertNotifier } from "@/components/alert-notifier"
+import { Toaster } from "react-hot-toast"
 
 export default async function DashboardLayout({
   children,
@@ -27,6 +29,18 @@ export default async function DashboardLayout({
           </main>
         </div>
       </div>
+      <AlertNotifier />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "text-sm",
+          style: {
+            background: "#fff",
+            color: "#0f172a",
+            border: "1px solid #e2e8f0",
+          },
+        }}
+      />
     </SessionProvider>
   )
 }
